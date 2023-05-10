@@ -1,0 +1,14 @@
+Build profile: -w ghc-8.10.7 -O1
+In order, the following will be built (use -v for more details):
+ - Schwertbot-0.1.0.0 (lib) (file src/Lib.hs changed)
+ - Schwertbot-0.1.0.0 (exe:Schwertbot-exe) (dependency rebuilt)
+Preprocessing library for Schwertbot-0.1.0.0..
+Building library for Schwertbot-0.1.0.0..
+[4 of 8] Compiling Adapter.PostgreSQL.Common ( src/Adapter/PostgreSQL/Common.hs, /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/build/Adapter/PostgreSQL/Common.o, /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/build/Adapter/PostgreSQL/Common.dyn_o )
+[5 of 8] Compiling Adapter.PostgreSQL.Adapter ( src/Adapter/PostgreSQL/Adapter.hs, /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/build/Adapter/PostgreSQL/Adapter.o, /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/build/Adapter/PostgreSQL/Adapter.dyn_o ) [Adapter.PostgreSQL.Common changed]
+[6 of 8] Compiling Lib              ( src/Lib.hs, /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/build/Lib.o, /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/build/Lib.dyn_o )
+[7 of 8] Compiling Domain.Bot       ( src/Domain/Bot.hs, /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/build/Domain/Bot.o, /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/build/Domain/Bot.dyn_o )
+Preprocessing executable 'Schwertbot-exe' for Schwertbot-0.1.0.0..
+Building executable 'Schwertbot-exe' for Schwertbot-0.1.0.0..
+[1 of 2] Compiling Main             ( app/Main.hs, /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/x/Schwertbot-exe/build/Schwertbot-exe/Schwertbot-exe-tmp/Main.o, /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/x/Schwertbot-exe/build/Schwertbot-exe/Schwertbot-exe-tmp/Main.dyn_o ) [Domain.Bot changed]
+Linking /home/kolay/haskell/Schwertbot/dist-newstyle/build/x86_64-linux/ghc-8.10.7/Schwertbot-0.1.0.0/x/Schwertbot-exe/build/Schwertbot-exe/Schwertbot-exe ...
