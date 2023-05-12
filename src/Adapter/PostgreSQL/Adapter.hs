@@ -11,7 +11,7 @@ import Data.Time (UTCTime)
 import Database.PostgreSQL.Simple
 import Domain.Model
   ( Message (..),
-    MessageError (UserDoesNotExist),
+    MessageError (..),
     User (..),
     UserId,
     Username,

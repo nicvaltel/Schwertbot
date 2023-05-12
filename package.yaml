@@ -28,6 +28,7 @@ dependencies:
 - time
 - bytestring
 - mtl
+- transformers
 - postgresql-simple
 - postgresql-simple-migration
 - dotenv
@@ -48,7 +49,7 @@ default-extensions:
 - ImportQualifiedPost
 - QuasiQuotes
 - NamedFieldPuns
-- TemplateHaskell
+# - TemplateHaskell
 
 ghc-options:
 - -Wall
