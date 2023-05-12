@@ -26,12 +26,10 @@ source-repository head
 library
   exposed-modules:
       Adapter.PostgreSQL.Adapter
-      Adapter.PostgreSQL.Bot
       Adapter.PostgreSQL.Common
       Domain.Bot
       Domain.Model
       Lib
-      TmpPG
   other-modules:
       Paths_Schwertbot
   hs-source-dirs:

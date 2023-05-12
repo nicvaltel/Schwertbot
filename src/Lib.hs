@@ -1,74 +1,64 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -F -pgmF=record-dot-preprocessor #-}
 
 module Lib
-  ( 
-    AppState,
-    Messenger(..),
-    App(..),
-    runApp,
-    someFunc,
-    testLib,
+  ( runBot,
   )
 where
 
-import Adapter.PostgreSQL.Common qualified as PG
 import Adapter.PostgreSQL.Adapter qualified as PG
-import Control.Monad.Catch
-import Control.Monad.Reader (MonadIO (liftIO), MonadReader, ReaderT (runReaderT))
-import Katip
-import System.IO (stdout)
-import Domain.Model (Messenger(..))
-import Adapter.PostgreSQL.Common (getToken)
+import Adapter.PostgreSQL.Common qualified as PG
+import Control.Monad (when)
+import Control.Monad.Catch (MonadThrow)
+import Control.Monad.Reader (MonadIO (liftIO), ReaderT (runReaderT))
+import Data.Maybe (fromMaybe, isNothing)
+import Data.Text (Text, pack)
+import Debug.Trace (traceShow)
+import Domain.Bot qualified as B
+import Domain.Model qualified as M
+import Telegram.Bot.Simple (BotM, Eff, reply, toReplyMessage, (<#))
 
+newtype App a = App {runApp :: IO a}
+  deriving (Functor, Applicative, Monad, MonadIO, MonadFail, MonadThrow)
 
-type AppState = (PG.AppState, String)
+instance M.MessengerDB App where
+  getUserById = undefined
+  createUser = undefined
+  insertMsg = undefined
 
-newtype App a = App {unApp :: ReaderT AppState (KatipContextT IO) a}
-  deriving (Functor, Applicative, Monad, MonadReader AppState, MonadIO, MonadFail, KatipContext, Katip, MonadThrow)
+runBot :: IO ()
+runBot = do
+  Right pgCfg <- PG.readDBConfig "db/database.env"
+  PG.withAppState pgCfg $ \pool ->
+    B.botStartup_ (PG.getToken pgCfg) (handleAction pool)
 
-instance Messenger App where
-  getUserById = PG.getUserById
-  createUser = PG.createUser
-  insertMsg = PG.insertMsg
+getUserById_ :: PG.AppState -> M.UserId -> IO (Maybe M.User)
+getUserById_ pool uId = runReaderT (PG.getUserById uId) pool
 
-run :: LogEnv -> AppState -> App a -> IO a
-run le state app =
-  runKatipContextT le () mempty $
-    runReaderT (unApp app) state
+insertMsg_ :: PG.AppState -> M.UserId -> Text -> IO (Either M.MessageError M.Message)
+insertMsg_ pool uId txt = runReaderT (PG.insertMsg uId txt) pool
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+createUser_ :: PG.AppState -> M.UserId -> M.Username -> IO M.User
+createUser_ pool uId uName = runReaderT (PG.createUser uId uName) pool
 
-withKatip :: (LogEnv -> IO a) -> IO a
-withKatip app = do
-  bracket createLogEnv closeScribes app
+handleAction :: PG.AppState -> M.Action -> M.ChatModel -> Eff M.Action M.ChatModel
+handleAction pool action model = traceShow action $
+  case action of
+    M.NoAction -> pure model
+    M.RecordMsg usrId mayUsrname msgId txt -> do
+      let usrname = fromMaybe (pack $ "user_" <> show usrId) mayUsrname
+      model <# do
+        maybeUser :: Maybe M.User <- liftIO $ getUserById_ pool usrId
+        when (isNothing maybeUser) $ liftIO $ createUser_ pool usrId usrname >> pure ()
+        _ <- liftIO $ insertMsg_ pool usrId txt
+        case maybeUser of
+          Just user -> replyString "И снова здравствуйте. Сохраняю сообщение..."
+          Nothing -> replyString "Здравтсвуйте. Приятно познакомиться, я бот-швертбот. Записываю ваше сообщение..."
+        replyString "Готово"
+        pure M.NoAction
   where
-    createLogEnv = do
-      logEnv <- initLogEnv "Quorum" "dev"
-      stdoutScribe <- mkHandleScribe ColorIfTerminal stdout (permitItem InfoS) V2
-      registerScribe "stdout" stdoutScribe defaultScribeSettings logEnv
-
-runApp :: App a -> IO a
-runApp app = withKatip $ \le -> do
-  Right pgCfg <- PG.readDBConfig "db/database.env"
-  PG.withAppState pgCfg $ \pgState ->
-    run le (pgState, getToken pgCfg) app
-
-testLib :: IO ()
-testLib = withKatip $ \le -> do
-  Right pgCfg <- PG.readDBConfig "db/database.env"
-  PG.withAppState pgCfg $ \pgState ->
-    run le (pgState, getToken pgCfg) testAction1
-
-testAction1 :: App ()
-testAction1 = do
-  user <- createUser 777 "TestUser1"
-  let uId = user.userId
-  mayUser <- getUserById uId
-  liftIO $ putStrLn $ "User: " ++ show mayUser
-  message <- insertMsg uId "Test Message"
-  liftIO $ putStrLn $ "Message: " ++ show message
-  liftIO $ print "Done!"
+    replyString :: String -> BotM ()
+    replyString = reply . toReplyMessage . pack

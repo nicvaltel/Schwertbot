@@ -10,13 +10,16 @@ import Data.Text (Text)
 import Data.Time (UTCTime)
 import Database.PostgreSQL.Simple
 import Domain.Model
-    ( User(..), Message (..), UserId, Username, MessageError (UserDoesNotExist) )
+  ( Message (..),
+    MessageError (UserDoesNotExist),
+    User (..),
+    UserId,
+    Username,
+  )
 import UnliftIO (throwString)
-import Debug.Trace (traceShow)
 
 getUserById :: PG r m => UserId -> m (Maybe User)
 getUserById uid = do
-  traceShow "HERE Adapter 1" $ pure ()
   result :: [(Int, Text, UTCTime)] <- withConn $ \conn -> query conn qryStr (Only uid)
   case result of
     [] -> pure Nothing
@@ -24,7 +27,6 @@ getUserById uid = do
     _ -> throwString $ "Should not happen: several userId's in users table in DB - id = " ++ show uid
   where
     qryStr = "select user_id, username, created from users where user_id = ?"
-
 
 createUser :: PG r m => UserId -> Username -> m User
 createUser userId username = do
@@ -35,11 +37,10 @@ createUser userId username = do
   where
     qryStr = "insert into users (user_id, username) values (?, ?) returning created"
 
-
 insertMsg :: PG r m => UserId -> Text -> m (Either MessageError Message)
 insertMsg uId text = do
   mayUser <- getUserById uId
-  case mayUser of 
+  case mayUser of
     Nothing -> pure (Left $ UserDoesNotExist uId)
     Just user_ -> do
       result :: [(Int, UTCTime)] <- withConn $ \conn -> query conn qryStr (uId, text)
@@ -48,5 +49,3 @@ insertMsg uId text = do
         _ -> throwString $ "Should not happen: cannot create user in users table in DB - username = " ++ show uId ++ " text = " ++ show text
   where
     qryStr = "insert into messages (user_id, text) values (?,?) returning id, sent"
-
-  

@@ -10,7 +10,7 @@ module Adapter.PostgreSQL.Common
     getToken,
     readDBConfig,
     withAppState,
-    withConn
+    withConn,
   )
 where
 
@@ -40,7 +40,6 @@ import UnliftIO (throwString)
 type AppState = Pool Connection
 
 type PG r m = (Has (Pool Connection) r, MonadReader r m, MonadIO m, MonadThrow m)
-
 
 data DBConfig = DBConfig
   { dbHost :: String,
