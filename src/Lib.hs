@@ -25,7 +25,7 @@ runBot :: IO ()
 runBot = do
   Right pgCfg <- PG.readDBConfig "db/database.env"
   PG.withAppState pgCfg $ \pool ->
-    B.botStartup (PG.getToken pgCfg) (handleAction pool)
+    B.botStartup (PG.getToken pgCfg) (handleTranslate pool)
 
 getUserById_ :: PG.AppState -> M.UserId -> IO (Maybe M.User)
 getUserById_ pool uId = runReaderT (PG.getUserById uId) pool
@@ -36,21 +36,46 @@ insertMsg_ pool uId txt = runReaderT (PG.insertMsg uId txt) pool
 createUser_ :: PG.AppState -> M.UserId -> M.Username -> IO M.User
 createUser_ pool uId uName = runReaderT (PG.createUser uId uName) pool
 
-handleAction :: PG.AppState -> B.Action -> B.ChatModel -> Eff B.Action B.ChatModel
-handleAction pool action model = traceShow action $
+translateWord_ :: PG.AppState -> Text -> IO (Either M.TranslateError (Text, Text))
+translateWord_ pool word = runReaderT (PG.translateWord word) pool
+
+-- handleAction :: PG.AppState -> B.Action -> B.ChatModel -> Eff B.Action B.ChatModel
+-- handleAction pool action model = traceShow action $
+--   case action of
+--     B.NoAction -> pure model
+--     B.RecordMsg usrId mayUsrname _ txt -> do
+--       let usrname = fromMaybe (pack $ "user_" <> show usrId) mayUsrname
+--       model <# do
+--         maybeUser :: Maybe M.User <- liftIO $ getUserById_ pool usrId
+--         when (isNothing maybeUser) $ liftIO $ createUser_ pool usrId usrname >> pure ()
+--         _ <- liftIO $ insertMsg_ pool usrId txt
+--         case maybeUser of
+--           Just _ -> replyString "И снова здравствуйте. Сохраняю сообщение..."
+--           Nothing -> replyString "Здравтсвуйте. Приятно познакомиться, я бот-швертбот. Записываю ваше сообщение..."
+--         replyString "Готово"
+--         pure B.NoAction
+--   where
+--     replyString :: String -> BotM ()
+--     replyString = reply . toReplyMessage . pack
+
+handleTranslate :: PG.AppState -> B.Action -> B.ChatModel -> Eff B.Action B.ChatModel
+handleTranslate pool action model = traceShow action $
   case action of
     B.NoAction -> pure model
-    B.RecordMsg usrId mayUsrname _ txt -> do
+    B.RecordMsg usrId mayUsrname _ word -> do
       let usrname = fromMaybe (pack $ "user_" <> show usrId) mayUsrname
       model <# do
         maybeUser :: Maybe M.User <- liftIO $ getUserById_ pool usrId
         when (isNothing maybeUser) $ liftIO $ createUser_ pool usrId usrname >> pure ()
-        _ <- liftIO $ insertMsg_ pool usrId txt
+        _ <- liftIO $ insertMsg_ pool usrId word
         case maybeUser of
-          Just _ -> replyString "И снова здравствуйте. Сохраняю сообщение..."
-          Nothing -> replyString "Здравтсвуйте. Приятно познакомиться, я бот-швертбот. Записываю ваше сообщение..."
-        replyString "Готово"
+          Just _ -> do
+            translation <- liftIO $ translateWord_ pool word
+            case translation of
+              Right (wRom, wRus) -> replyString $ wRom <> ": " <> wRus
+              Left err -> replyString . pack $ show err
+          Nothing -> replyString "Я бот-переводчик с великомогучего на молдавский (румынский) язык. Напишите слово, чтобы я перевел его."
         pure B.NoAction
   where
-    replyString :: String -> BotM ()
-    replyString = reply . toReplyMessage . pack
+    replyString :: Text -> BotM ()
+    replyString = reply . toReplyMessage

@@ -80,7 +80,11 @@ migrate pool = withResource pool $ \conn -> do
     MigrationError err -> throwString err
     _ -> pure ()
   where
-    cmds = [MigrationInitialization, MigrationDirectory "src/Adapter/PostgreSQL/Migrations"]
+    cmds =
+      [ MigrationInitialization,
+        MigrationDirectory "src/Adapter/PostgreSQL/Migrations_00_Create_Tables",
+        MigrationDirectory "src/Adapter/PostgreSQL/Migrations_01_Fill_Tables"
+      ]
 
 withPool :: DBConfig -> (Pool Connection -> IO a) -> IO a
 withPool conf action = do

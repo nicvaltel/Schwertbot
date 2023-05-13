@@ -2,4 +2,5 @@
 dist-newstyle/
 db/postgres/
 db/database.env
+src/Adapter/PostgreSQL/Migrations_01_Fill_Tables/
 *~
