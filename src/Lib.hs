@@ -74,7 +74,7 @@ handleTranslate pool action model = traceShow action $
             case translation of
               Right (wRom, wRus) -> replyString $ wRom <> ": " <> wRus
               Left err -> replyString . pack $ show err
-          Nothing -> replyString "Я бот-переводчик с великомогучего на молдавский (румынский) язык. Напишите слово, чтобы я перевел его."
+          Nothing -> replyString "Я бот-переводчик с румынского на русский язык. Напишите слово, чтобы я перевел его."
         pure B.NoAction
   where
     replyString :: Text -> BotM ()
