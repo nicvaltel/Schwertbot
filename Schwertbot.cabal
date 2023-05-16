@@ -36,7 +36,6 @@ library
       src
   default-extensions:
       OverloadedStrings
-      ImportQualifiedPost
       QuasiQuotes
       NamedFieldPuns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
@@ -47,13 +46,11 @@ library
     , dotenv
     , either
     , exceptions
-    , katip
     , mtl
     , postgresql-simple
     , postgresql-simple-migration
     , record-hasfield
     , resource-pool
-    , string-random
     , telegram-bot-api
     , telegram-bot-simple
     , text
@@ -70,7 +67,6 @@ executable Schwertbot-exe
       app
   default-extensions:
       OverloadedStrings
-      ImportQualifiedPost
       QuasiQuotes
       NamedFieldPuns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -82,13 +78,11 @@ executable Schwertbot-exe
     , dotenv
     , either
     , exceptions
-    , katip
     , mtl
     , postgresql-simple
     , postgresql-simple-migration
     , record-hasfield
     , resource-pool
-    , string-random
     , telegram-bot-api
     , telegram-bot-simple
     , text
@@ -106,7 +100,6 @@ test-suite Schwertbot-test
       test
   default-extensions:
       OverloadedStrings
-      ImportQualifiedPost
       QuasiQuotes
       NamedFieldPuns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -118,13 +111,11 @@ test-suite Schwertbot-test
     , dotenv
     , either
     , exceptions
-    , katip
     , mtl
     , postgresql-simple
     , postgresql-simple-migration
     , record-hasfield
     , resource-pool
-    , string-random
     , telegram-bot-api
     , telegram-bot-simple
     , text

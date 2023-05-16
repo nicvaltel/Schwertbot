@@ -1,13 +1,12 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Adapter.PostgreSQL.Adapter
   ( getUserById,
     createUser,
     insertMsg,
-    translateWord
+    translateWord,
   )
 where
 
@@ -21,11 +20,10 @@ import Domain.Model
     TranslateError (..),
     User (..),
     UserId,
-    Username
+    Username,
   )
-import Domain.Model qualified as M
-import UnliftIO (throwString)
 import qualified Domain.Model as M
+import UnliftIO (throwString)
 
 getUserById :: PG r m => UserId -> m (Maybe User)
 getUserById uid = do
@@ -65,7 +63,6 @@ translateWord wordUnclean = do
   let qryStr = if M.isRomanWord word then qryStrRom else qryStrEng
   result :: [(Int, Text, Text)] <- withConn $ \conn -> query conn qryStr (Only $ M.getCleanText word)
   pure $ M.findBestWord result
-
   where
     qryStrEng =
       "SELECT \

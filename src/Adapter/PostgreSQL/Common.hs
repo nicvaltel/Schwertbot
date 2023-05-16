@@ -1,8 +1,7 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -F -pgmF=record-dot-preprocessor #-}
 
 module Adapter.PostgreSQL.Common
   ( AppState,
@@ -90,12 +89,12 @@ withPool :: DBConfig -> (Pool Connection -> IO a) -> IO a
 withPool conf action = do
   bracket initPool cleanPool action
   where
-    initPool = newPool $ defaultPoolConfig openConn close conf.dbIdleConnTimeout conf.dbMaxOpenConnPerStripe
+    initPool = newPool $ defaultPoolConfig openConn close (dbIdleConnTimeout conf) (dbMaxOpenConnPerStripe conf)
     cleanPool = destroyAllResources
     openConn = connectPostgreSQL (fromString connectString)
 
     connectString :: String
-    connectString = printf "host='%s' port=%d dbname='%s' user='%s' password='%s'" conf.dbHost conf.dbPort conf.dbName conf.dbUser conf.dbPassword
+    connectString = printf "host='%s' port=%d dbname='%s' user='%s' password='%s'" (dbHost conf) (dbPort conf) (dbName conf) (dbUser conf) (dbPassword conf)
 
 withAppState :: DBConfig -> (AppState -> IO a) -> IO a
 withAppState conf action =

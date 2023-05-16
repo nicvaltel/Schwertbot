@@ -1,7 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -15,7 +14,6 @@ where
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Maybe
 import Data.Text
-import Domain.Model qualified as M
 import Telegram.Bot.API as Telegram
 import Telegram.Bot.Simple
 import Telegram.Bot.Simple.UpdateParser

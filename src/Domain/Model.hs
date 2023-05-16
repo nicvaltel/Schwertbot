@@ -1,8 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -F -pgmF=record-dot-preprocessor #-}
 
 module Domain.Model
   ( UserId,
@@ -20,11 +18,10 @@ module Domain.Model
 where
 
 import Data.Text (Text)
-import Data.Text qualified as T
-import Data.Text.Internal.Fusion qualified as TS (stream)
-import Data.Text.Internal.Fusion.Common qualified as TS
+import qualified Data.Text as T
+import qualified Data.Text.Internal.Fusion as TS (stream)
+import qualified Data.Text.Internal.Fusion.Common as TS
 import Data.Time (UTCTime)
-import Database.PostgreSQL.Simple (Only (Only))
 import GHC.Exts (sortWith)
 
 type UserId = Int

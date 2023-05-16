@@ -1,24 +1,22 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -F -pgmF=record-dot-preprocessor #-}
 
 module Lib
   ( runBot,
   )
 where
 
-import Adapter.PostgreSQL.Adapter qualified as PG
-import Adapter.PostgreSQL.Common qualified as PG
+import qualified Adapter.PostgreSQL.Adapter as PG
+import qualified Adapter.PostgreSQL.Common as PG
 import Control.Monad (when)
 import Control.Monad.Reader (MonadIO (liftIO), ReaderT (runReaderT))
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Text (Text, pack)
 import Debug.Trace (traceShow)
-import Domain.Bot qualified as B
-import Domain.Model qualified as M
+import qualified Domain.Bot as B
+import qualified Domain.Model as M
 import Telegram.Bot.Simple (BotM, Eff, reply, toReplyMessage, (<#))
 
 runBot :: IO ()

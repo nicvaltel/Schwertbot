@@ -21,7 +21,6 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
-- record-hasfield
 - telegram-bot-simple
 - telegram-bot-api
 - text
@@ -38,18 +37,11 @@ dependencies:
 - exceptions
 - resource-pool
 - unliftio
-- string-random
-- katip
-# - monad-logger
-# - monad-control
-# - transformers
 
 default-extensions:
 - OverloadedStrings
-- ImportQualifiedPost
 - QuasiQuotes
 - NamedFieldPuns
-# - TemplateHaskell
 
 ghc-options:
 - -Wall
