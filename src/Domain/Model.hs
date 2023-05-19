@@ -3,7 +3,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Domain.Model
-  ( UserId,
+  ( BotDBModel (..),
+    UserId,
     Username,
     MessageId,
     User (..),
@@ -14,9 +15,12 @@ module Domain.Model
     isRomanWord,
     cleanWord,
     CleanText (..),
+    isRussianWord,
   )
 where
 
+import Data.Char (ord)
+import Data.List (minimumBy, sortBy)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Internal.Fusion as TS (stream)
@@ -54,17 +58,31 @@ data TranslateError = WordNotFound
 instance Show TranslateError where
   show WordNotFound = "Слово не найдено"
 
-findBestWord :: [(Int, Text, Text)] -> Either TranslateError (Text, Text)
+class BotDBModel a where
+  getUserById :: a -> UserId -> IO (Maybe User)
+  insertMsg :: a -> UserId -> Text -> IO (Either MessageError Message)
+  createUser :: a -> UserId -> Username -> IO User
+  translateWord :: a -> Text -> IO (Either TranslateError (Text, Text))
+
+findBestWord :: [(Int, Int, Text, Text)] -> Either TranslateError (Text, Text)
 findBestWord [] = Left WordNotFound
-findBestWord [(_, wordRom, worsRus)] = Right (wordRom, worsRus)
+findBestWord [(_, _, wordRom, worsRus)] = Right (wordRom, worsRus)
 findBestWord wrds =
   Right
-    . (\(_, wRom, wRus) -> (wRom, wRus))
-    . head
-    . sortWith (\(id_, _, _) -> id_)
+    . (\(_, _, wRom, wRus) -> (wRom, wRus))
+    . minimumBy sortFunc
     $ wrds
+  where
+    sortFunc (idTrans0, idWord0, _, _) (idTrans1, idWord1, _, _) =
+      case idTrans0 `compare` idTrans1 of
+        GT -> GT
+        LT -> LT
+        EQ -> idWord0 `compare` idWord1
 
 newtype CleanText = CleanText {getCleanText :: Text} -- lowered and cleaned from \ş -> ș and \ţ -> ț
+
+isRussianWord :: CleanText -> Bool
+isRussianWord (CleanText word) = TS.any (\c -> c >= 'а' && c <= 'я') (TS.stream word)
 
 isRomanWord :: CleanText -> Bool
 isRomanWord (CleanText word) = any (`textElem` word) literalsRomana

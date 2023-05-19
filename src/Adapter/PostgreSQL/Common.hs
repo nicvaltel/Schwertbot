@@ -81,8 +81,8 @@ migrate pool = withResource pool $ \conn -> do
   where
     cmds =
       [ MigrationInitialization,
-        MigrationDirectory "src/Adapter/PostgreSQL/Migrations_00_Create_Tables",
-        MigrationDirectory "src/Adapter/PostgreSQL/Migrations_01_Fill_Tables"
+        MigrationDirectory "migration/PostgreSQL/Migrations_00_Create_Tables",
+        MigrationDirectory "migration/PostgreSQL/Migrations_01_Fill_Tables"
       ]
 
 withPool :: DBConfig -> (Pool Connection -> IO a) -> IO a

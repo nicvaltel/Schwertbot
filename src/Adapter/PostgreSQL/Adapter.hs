@@ -11,7 +11,7 @@ module Adapter.PostgreSQL.Adapter
 where
 
 import Adapter.PostgreSQL.Common
-import Data.Text (Text, toLower, unpack)
+import Data.Text (Text)
 import Data.Time (UTCTime)
 import Database.PostgreSQL.Simple
 import Domain.Model
@@ -33,7 +33,7 @@ getUserById uid = do
     [(userId, username, created)] -> pure $ Just User {userId, username, created}
     _ -> throwString $ "Should not happen: several userId's in users table in DB - id = " ++ show uid
   where
-    qryStr = "select user_id, username, created from users where user_id = ?"
+    qryStr = "select user_id, username, created from rusrom.users where user_id = ?"
 
 createUser :: PG r m => UserId -> Username -> m User
 createUser userId username = do
@@ -42,7 +42,7 @@ createUser userId username = do
     [Only created] -> pure User {userId, username, created}
     _ -> throwString $ "Should not happen: cannot create user in users table in DB - username = " ++ show username
   where
-    qryStr = "insert into users (user_id, username) values (?, ?) returning created"
+    qryStr = "insert into rusrom.users (user_id, username) values (?, ?) returning created"
 
 insertMsg :: PG r m => UserId -> Text -> m (Either MessageError Message)
 insertMsg uId text = do
@@ -55,45 +55,58 @@ insertMsg uId text = do
         [(messageId, sent)] -> pure $ Right Message {messageId, uId, text, sent}
         _ -> throwString $ "Should not happen: cannot create user in users table in DB - username = " ++ show uId ++ " text = " ++ show text
   where
-    qryStr = "insert into messages (user_id, text) values (?,?) returning id, sent"
+    qryStr = "insert into rusrom.messages (user_id, text) values (?,?) returning id, sent"
 
 translateWord :: PG r m => Text -> m (Either TranslateError (Text, Text))
 translateWord wordUnclean = do
   let word = M.cleanWord wordUnclean
+  if M.isRussianWord word
+    then translateRus2Rom word
+    else translateRom2Rus word
+
+translateRus2Rom :: PG r m => M.CleanText -> m (Either TranslateError (Text, Text))
+translateRus2Rom word = do
+  result :: [(Int, Int, Text, Text)] <- withConn $ \conn -> query conn qryStr (Only $ M.getCleanText word)
+  pure $ M.findBestWord result
+  where
+    qryStr =
+      " select   \
+      \ t.idTranslation,  \
+      \ rus.id , \
+      \ rus.word_rus, \
+      \ rom.word_rom \
+      \ from   \
+      \ rusrom.word_rus  rus  \
+      \ join rusrom.translations t on rus.word_rus = ? and t.idWord = rus.id   \
+      \ join rusrom.word_rom rom on t.idTranslation = rom.id   \
+      \ ; "
+
+translateRom2Rus :: PG r m => M.CleanText -> m (Either TranslateError (Text, Text))
+translateRom2Rus word = do
   let qryStr = if M.isRomanWord word then qryStrRom else qryStrEng
-  result :: [(Int, Text, Text)] <- withConn $ \conn -> query conn qryStr (Only $ M.getCleanText word)
+  result :: [(Int, Int, Text, Text)] <- withConn $ \conn -> query conn qryStr (Only $ M.getCleanText word)
   pure $ M.findBestWord result
   where
     qryStrEng =
-      "SELECT \
-      \  min_id, \
-      \  word_rom, \
-      \  word_rus \
-      \  from \
-      \      ( \
-      \    SELECT  \
-      \      min(t.idTranslation) as min_id, \
-      \      word_rom.word_rom as word_rom \
-      \    from \
-      \      word_rom  \
-      \      join translations t on word_rom.word_eng = ? and t.idWord = word_rom.id \
-      \      join word_rus rus on t.idTranslation = rus.id \
-      \    group by word_rom.word_rom \
-      \    ) as sq join word_rus w on  w.id = sq.min_id;"
+      "select  \
+      \ t.idTranslation, \
+      \ rom.id , \
+      \ rom.word_rom ,\
+      \ rus.word_rus \
+      \ from  \
+      \  rusrom.word_rom  rom \
+      \  join rusrom.translations t on rom.word_eng = ? and t.idWord = rom.id  \
+      \  join rusrom.word_rus rus on t.idTranslation = rus.id  \
+      \  ;"
 
     qryStrRom =
-      "SELECT \
-      \  min_id, \
-      \  word_rom, \
-      \  word_rus \
-      \  from \
-      \      ( \
-      \    SELECT  \
-      \      min(t.idTranslation) as min_id, \
-      \      word_rom.word_rom as word_rom \
-      \    from \
-      \      word_rom  \
-      \      join translations t on word_rom.word_rom = ? and t.idWord = word_rom.id \
-      \      join word_rus rus on t.idTranslation = rus.id \
-      \    group by word_rom.word_rom \
-      \    ) as sq join word_rus w on  w.id = sq.min_id;"
+      " select  \
+      \ t.idTranslation, \
+      \ rom.id , \
+      \ rom.word_rom ,\
+      \ rus.word_rus \
+      \ from  \
+      \  rusrom.word_rom  rom \
+      \  join rusrom.translations t on rom.word_rom = ? and t.idWord = rom.id  \
+      \  join rusrom.word_rus rus on t.idTranslation = rus.id  \
+      \ ;"
